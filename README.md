@@ -9,3 +9,5 @@ An attempt to create a web-based ground control station using rust and MQTT
 ## First Day
 1. First thing to do is connecting to an UDP port (should be testable with ardupilot SITL or an FC),then synchronously parse messages, e.g. attitude and altitude. 
 2. Then we would want to change step 1 to an asynchronous I/O without thread blocking (i.e. using tokio::spawn, instead of await).
+
+Now async connection is pretty much done, the next day will be an attempt on creating a websocket and MQTT. Will only still be reading the message stream. 
