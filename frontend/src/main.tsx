@@ -1,19 +1,38 @@
-import { StrictMode } from 'react';
+import { StrictMode, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './style.css';
+import mqtt from 'mqtt'; 
 
 function App() {
+  const [payload, setPayload] = useState('waiting for telemetry'); 
+
+  useEffect(() => {
+    const client = mqtt.connect(import.meta.env.VITE_MQTT_URL || 'ws://127.0.0.1:9001');
+
+    const topic = import.meta.env.VITE_MQTT_TOPIC || 'mav/1/state'; 
+
+    client.on('connect', () => { 
+      client.subscribe(topic);
+    });
+
+    client.on('message', (receivedTopic, message) => { 
+      if (receivedTopic === topic) { 
+        setPayload(message.toString()); 
+      } 
+    });
+
+    client.on('error', (error) => { 
+      console.error('MQTT error: ', error); 
+    });
+
+    return () => { 
+      client.end(); 
+    };
+  }, [])
   return (
     <main>
-      <p className="eyebrow">test</p>
-      <h1>testtesttest</h1>
-      <dl>
-        <dt>Broker WebSocket URL</dt>
-        <dd>{import.meta.env.VITE_MQTT_URL || 'ws://127.0.0.1:9001'}</dd>
-        <dt>Vehicle state topic</dt>
-        <dd>{import.meta.env.VITE_MQTT_TOPIC || 'mav/1/state'}</dd>
-      </dl>
-      <p>No telemetry connection.</p>
+      <h1> telemetry </h1> 
+      <pre>{payload}</pre> 
     </main>
   );
 }
