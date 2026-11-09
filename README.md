@@ -1,8 +1,18 @@
 # Mavlink Ground Control Station 
 An attempt to create a web-based ground control station using rust and MQTT 
 
+## Repository layout
+
+- `src/`: Rust MAVLink receiver, vehicle state, and MQTT publisher.
+- `frontend/`: React + TypeScript + Vite frontend scaffold. See [frontend setup](frontend/README.md).
+- `config/mosquitto.conf`: local MQTT/TCP and MQTT/WebSocket listeners.
+- `scripts/`: lightweight SITL setup and launch helpers. See [simulator setup](scripts/SITL.md).
+
+To start frontend development, run `npm ci` then `npm run dev` inside `frontend/`.
+Run `npm run build` there to type-check and produce `frontend/dist/`.
+
 # Deps 
-- mavlink crate, that's it, so far at least :|
+- `Cargo.toml`
 
 # Roadmap
 [this section will be a list of things i did including my design though process] 
