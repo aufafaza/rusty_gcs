@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 mavlink = { version = "0.21.0", default-features = false, features = ["std", "tokio", "transport-udp", "dialect-common"] }
+rumqttc = "0.25.1"
 tokio = { version = "1", features = ["full"] }
 
 [profile.dev]

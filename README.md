@@ -11,3 +11,6 @@ An attempt to create a web-based ground control station using rust and MQTT
 2. Then we would want to change step 1 to an asynchronous I/O without thread blocking (i.e. using tokio::spawn, instead of await).
 
 Now async connection is pretty much done, the next day will be an attempt on creating a websocket and MQTT. Will only still be reading the message stream. 
+
+## Second day 
+1. Use MQTT broker to create an event loop for publishing a message, to try, use muquitto
