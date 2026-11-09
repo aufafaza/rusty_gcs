@@ -14,3 +14,5 @@ Now async connection is pretty much done, the next day will be an attempt on cre
 
 ## Second day 
 1. Use MQTT broker to create an event loop for publishing a message, to try, use muquitto
+2. Adding a heartbeat tick for a certain interval, so that the state of the backend is independent from the mavlink connection 
+3. adding a simple ui 
