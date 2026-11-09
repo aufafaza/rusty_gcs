@@ -1,3 +1,4 @@
+use gcs::DroneState;
 use mavlink::AsyncMavConnection;
 use mavlink::dialects::common::MavMessage;
 use rumqttc::v5::mqttbytes::QoS;
@@ -13,6 +14,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         eprintln!("usage: (udpin)|127.0.0.1|14550");
         return Ok(());
     };
+
+    // init dronestate struct
+    let mut state = DroneState::new(1);
+    let mut heartbeat_timer = tokio::time::interval(Duration::from_millis(100));
+    heartbeat_timer.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
     let mut mqttoptions = MqttOptions::new("test-1", "localhost", 1884);
     mqttoptions.set_keep_alive(Duration::from_secs(5));
 
@@ -42,37 +48,29 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut mavconn = mavlink::connect_async::<MavMessage>(&address).await?;
     mavconn.set_allow_recv_any_version(true);
-
+    // we want to update the state
+    // -> then serialize the state to publish the payload
     loop {
-        // just read
-        let (header, message) = mavconn.recv().await?;
-        let topic = format!("mav/{}/data", header.system_id);
-        let payload = format!("{message:?}");
+        // select -> task racing
+        tokio::select! {
+            // task 1: updating
+            received = mavconn.recv() => {
+                let (header, message) = received?;
 
-        client
-            .publish(topic, QoS::AtMostOnce, false, payload)
-            .await?;
+                if header.system_id == state.system_id {
+                    state.update(&message);
+                }
+            }
+            // task 2: heartbeat tick to mqtt
+            _ = heartbeat_timer.tick() => {
+                    state.check_connection(Duration::from_secs(2));
+
+                    let payload = serde_json::to_vec(&state)?;
+                    let topic = format!("mav/{}/state", state.system_id);
+                    client
+                        .publish(topic, QoS::AtMostOnce, false, payload).await?;
+                }
+        }
+        println!("{state}");
     }
-}
-
-async fn request(client: AsyncClient) {
-    client
-        .subscribe("mav/1/data", QoS::AtMostOnce)
-        .await
-        .unwrap();
-}
-
-async fn publish(client: AsyncClient) {
-    // thread::sleep(Duration::from_secs(1));
-    client
-        .subscribe("mav/1/data", QoS::AtMostOnce)
-        .await
-        .unwrap();
-
-    client
-        .publish("mav/1/data", QoS::AtLeastOnce, true, vec![1, 2, 3])
-        .await
-        .unwrap();
-
-    // thread::sleep(Duration::from_secs(1));
 }
